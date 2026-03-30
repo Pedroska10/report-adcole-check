@@ -9,6 +9,15 @@ Desktop app in Python (Tkinter) to compare values between two PDF reports and ex
 2. Run app:
    python app.py
 
+## Build EXE (Windows)
+
+1. Install build tools in your venv:
+   pip install pyinstaller pillow
+2. Build executable with embedded icon and model template:
+   pyinstaller --noconfirm --clean --onefile --windowed --name "adcole compare" --icon "compare_4222.ico" --add-data "compare_4222.ico;." --add-data "compare_4222.png;." --add-data "modelo.xlsx;." app.py
+3. Output file:
+   dist\adcole compare.exe
+
 ## Output rules
 
 - Base rows come from `Tabela_Caracteristicas` PDF.
