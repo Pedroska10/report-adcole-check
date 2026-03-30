@@ -130,6 +130,40 @@ class ComparatorApp(tk.Tk):
             return self.desktop_dir / output_path
         return output_path
 
+    def _resolve_existing_model_path(self, raw_model_path: Path) -> Path | None:
+        if raw_model_path.is_absolute():
+            return raw_model_path if raw_model_path.exists() else None
+
+        candidates: list[Path] = [Path.cwd() / raw_model_path]
+
+        # Source mode (project root) candidate.
+        candidates.append(Path(__file__).resolve().parent.parent / raw_model_path)
+
+        # Frozen executable mode candidate.
+        if getattr(sys, "frozen", False):
+            candidates.append(Path(sys.executable).resolve().parent / raw_model_path)
+
+        # PyInstaller temporary extraction folder candidate.
+        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+            candidates.append(Path(sys._MEIPASS) / raw_model_path)
+
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+        return None
+
+    def _ask_model_file_if_missing(self) -> Path | None:
+        path = filedialog.askopenfilename(
+            title="Selecione o modelo Excel (.xlsx)",
+            initialdir=str(self.desktop_dir),
+            filetypes=[("Excel", "*.xlsx")],
+        )
+        if not path:
+            return None
+        selected = Path(path)
+        self.model_var.set(str(selected))
+        return selected
+
     def _ask_output_path_after_compare(self) -> Path | None:
         suggested = Path(self.output_var.get())
         path = filedialog.asksaveasfilename(
@@ -147,11 +181,18 @@ class ComparatorApp(tk.Tk):
         try:
             base_pdf = Path(self.pdf_base_var.get()).expanduser()
             secondary_pdf = Path(self.pdf_secondary_var.get()).expanduser()
-            model_xlsx = Path(self.model_var.get()).expanduser()
+            raw_model_xlsx = Path(self.model_var.get()).expanduser()
+            model_xlsx = self._resolve_existing_model_path(raw_model_xlsx)
 
-            for required in [base_pdf, secondary_pdf, model_xlsx]:
+            for required in [base_pdf, secondary_pdf]:
                 if not required.exists():
                     raise FileNotFoundError(f"Arquivo nao encontrado: {required}")
+
+            if model_xlsx is None:
+                model_xlsx = self._ask_model_file_if_missing()
+                if model_xlsx is None:
+                    messagebox.showinfo("Cancelado", "Modelo Excel nao selecionado.")
+                    return
 
             mapping_rules = parse_mapping_rules(self.mapping_text.get("1.0", tk.END))
 

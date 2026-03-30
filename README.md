@@ -20,6 +20,7 @@ Desktop app in Python (Tkinter) to compare values between two PDF reports and ex
 - `NOT OK` cell is highlighted in light red when row has at least one mismatch.
 - After comparison finishes, the app opens a save dialog so the user chooses where to save the `.xlsx`.
 - Default output file name suggestion: first 11 chars from `Program:` in Adcole report + current time (HHMMSS).
+- If `modelo.xlsx` is not found, the app asks you to select the template file.
 
 ## Project structure
 
