@@ -1,0 +1,51 @@
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build / distribution artifacts
+build/
+dist/
+*.spec
+
+# Packaging outputs
+*.exe
+*.msi
+*.whl
+*.egg-info/
+
+# Test and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Type checking and lint caches
+.mypy_cache/
+.ruff_cache/
+.pyre/
+
+# IDE/editor
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+*.tmp
+~$*.xlsx
+
+# Local data files (optional - keep if desired)
+# *.pdf
+# *.xlsx
+# *.png
+# *.ico

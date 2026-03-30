@@ -1,0 +1,1 @@
+"""PDF comparator application package."""
