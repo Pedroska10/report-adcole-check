@@ -304,7 +304,215 @@ def parse_secondary_pdf(pdf_path: Path) -> dict[str, MeasurementRow]:
                 exceedance=exceedance,
             )
 
+    # Fallback/augmentation for the Portuguese report layout.
+    pt_data = _parse_secondary_pdf_portuguese(lines)
+    for key, row in pt_data.items():
+        if key not in data:
+            data[key] = row
+
     if not data:
         raise ValueError("Nao foi possivel extrair informacoes da tabela secundaria.")
+
+    return data
+
+
+def _parse_row_numbers_pt(numbers: list[float]) -> MeasurementRow:
+    if len(numbers) >= 5:
+        nominal, lower, upper, measured, deviation = numbers[:5]
+    elif len(numbers) == 4:
+        nominal, lower, upper, measured = numbers
+        deviation = measured - nominal
+    else:
+        nominal = numbers[0] if len(numbers) > 0 else None
+        lower = numbers[1] if len(numbers) > 1 else None
+        upper = numbers[2] if len(numbers) > 2 else None
+        measured = None
+        deviation = None
+
+    exceedance = compute_exceedance(measured, lower, upper)
+    return MeasurementRow(
+        characteristic_name="",
+        nominal_value=nominal,
+        measured_value=measured,
+        lower_limit=lower,
+        upper_limit=upper,
+        deviation=deviation,
+        exceedance=exceedance,
+    )
+
+
+def _parse_secondary_pdf_portuguese(lines: list[str]) -> dict[str, MeasurementRow]:
+    data: dict[str, MeasurementRow] = {}
+    current_section = ""
+
+    header_prefixes = (
+        "Scania Brazil",
+        "Model ",
+        "Date:",
+        "Time:",
+        "Oper.:",
+        "Part :",
+        "Serial:",
+        "S e r i a l",
+        "Nome ",
+        "Mínimo",
+        "M�nimo",
+        "Message #",
+        "Remove 4.5\"",
+        "Journal Roundness",
+        "Base circle radius",
+    )
+
+    section_aliases = {
+        "errounguloparareferenciai6": "erroanguloparareferenciai6",
+    }
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        if line.startswith(header_prefixes):
+            continue
+
+        if "Datatable:" in line or "Program:" in line:
+            continue
+
+        mancal_match = re.match(r"^Mancal\s+([A-G])\s+(.+)$", line, flags=re.IGNORECASE)
+        i_match = re.match(r"^(I\d+)\b(?:\s*\(@[^)]*\))?\s+(.+)$", line, flags=re.IGNORECASE)
+        dm_match = re.match(r"^(DM\d+)\s+(.+)$", line, flags=re.IGNORECASE)
+
+        if mancal_match:
+            mancal = mancal_match.group(1).upper()
+            numbers = parse_numeric_tokens(mancal_match.group(2))
+            if len(numbers) < 3:
+                continue
+
+            row = _parse_row_numbers_pt(numbers)
+            section = current_section or "Mancal"
+
+            candidate_names = [
+                f"{section} [{mancal}]",
+                f"{section} - {mancal}",
+                f"Mancal {mancal}",
+            ]
+
+            if "diametro" in normalize_key(section):
+                candidate_names.extend(
+                    [
+                        f"Diametro Mancal {mancal}",
+                        f"Dia Mancal {mancal}",
+                        f"Meas Diam - {mancal}",
+                    ]
+                )
+
+            if "cilindricidade" in normalize_key(section):
+                candidate_names.extend([f"Cilindricidade [{mancal}]", f"Cylindricity - {mancal}"])
+
+            if "paralelismo" in normalize_key(section):
+                candidate_names.append(f"Parallelism [{mancal}]")
+
+            for name in candidate_names:
+                key = normalize_key(name)
+                data[key] = MeasurementRow(
+                    characteristic_name=name,
+                    nominal_value=row.nominal_value,
+                    measured_value=row.measured_value,
+                    lower_limit=row.lower_limit,
+                    upper_limit=row.upper_limit,
+                    deviation=row.deviation,
+                    exceedance=row.exceedance,
+                )
+            continue
+
+        if i_match:
+            i_label = i_match.group(1).upper()
+            idx = int(i_label[1:])
+            numbers = parse_numeric_tokens(i_match.group(2))
+            if len(numbers) < 3:
+                continue
+
+            row = _parse_row_numbers_pt(numbers)
+            section = current_section or "I"
+            normalized_section = normalize_key(section)
+            normalized_section = section_aliases.get(normalized_section, normalized_section)
+
+            alias_names = [
+                f"{section} [{i_label}]",
+                f"{section} - Lobe {idx}",
+            ]
+
+            if normalized_section == "anguloreferuz":
+                alias_names.append(f"Angulo Refer. UZ [{i_label}]")
+            if normalized_section == "erroanguloparareferenciai6":
+                alias_names.append(f"Angle error to Cam 11 A6 - Lobe {idx}")
+            if normalized_section == "raiodocirculobase":
+                alias_names.append(f"BC Radius Error - Lobe {idx}")
+            if normalized_section == "desviodocirculobase":
+                alias_names.append(f"BC Runout - Lobe {idx}")
+            if normalized_section == "concavoconvexo":
+                alias_names.extend([f"Concavo/Convexo [{i_label}]", f"Concave/Convex - Lobe {idx}"])
+            if normalized_section == "desviodevelocidade":
+                alias_names.append(f"BC Velocity Error - Lobe {idx}")
+            if normalized_section == "errodeperfiltopo":
+                alias_names.append(f"Lift Error Nose - Lobe {idx}")
+            if normalized_section == "errodeperfilfechamentodoflanco":
+                alias_names.append(f"Lift Error Ramp - Lobe {idx}")
+            if normalized_section == "errodeperfilaberturadoflanco":
+                alias_names.append(f"Lift Difference Ramp - Lobe {idx}")
+
+            for name in alias_names:
+                key = normalize_key(name)
+                data[key] = MeasurementRow(
+                    characteristic_name=name,
+                    nominal_value=row.nominal_value,
+                    measured_value=row.measured_value,
+                    lower_limit=row.lower_limit,
+                    upper_limit=row.upper_limit,
+                    deviation=row.deviation,
+                    exceedance=row.exceedance,
+                )
+            continue
+
+        if dm_match:
+            dm_label = dm_match.group(1).upper()
+            numbers = parse_numeric_tokens(dm_match.group(2))
+            if len(numbers) < 3:
+                continue
+            row = _parse_row_numbers_pt(numbers)
+            name = f"{current_section} [{dm_label}]" if current_section else dm_label
+            key = normalize_key(name)
+            data[key] = MeasurementRow(
+                characteristic_name=name,
+                nominal_value=row.nominal_value,
+                measured_value=row.measured_value,
+                lower_limit=row.lower_limit,
+                upper_limit=row.upper_limit,
+                deviation=row.deviation,
+                exceedance=row.exceedance,
+            )
+            continue
+
+        # Freeform metric line with values directly on the same line.
+        first_num_match = re.search(r"-?(?:\d+,\d+|,\d+|\d+)", line)
+        if first_num_match:
+            metric_name = line[: first_num_match.start()].strip()
+            numbers = parse_numeric_tokens(line[first_num_match.start() :])
+            if metric_name and len(numbers) >= 3:
+                row = _parse_row_numbers_pt(numbers)
+                key = normalize_key(metric_name)
+                data[key] = MeasurementRow(
+                    characteristic_name=metric_name,
+                    nominal_value=row.nominal_value,
+                    measured_value=row.measured_value,
+                    lower_limit=row.lower_limit,
+                    upper_limit=row.upper_limit,
+                    deviation=row.deviation,
+                    exceedance=row.exceedance,
+                )
+                continue
+
+        # Non-data line: treat as current section label.
+        current_section = line
 
     return data

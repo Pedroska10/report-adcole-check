@@ -63,7 +63,7 @@ class ComparatorApp(tk.Tk):
         ttk.Button(container, text="Selecionar", command=lambda: self._pick_file(self.pdf_base_var, [("PDF", "*.pdf")])).grid(row=row, column=2)
 
         row += 1
-        ttk.Label(container, text="PDF Adcole:").grid(row=row, column=0, sticky="w")
+        ttk.Label(container, text="PDF secundario:").grid(row=row, column=0, sticky="w")
         ttk.Entry(container, textvariable=self.pdf_secondary_var, width=95).grid(row=row, column=1, sticky="ew", padx=8)
         ttk.Button(container, text="Selecionar", command=lambda: self._pick_file(self.pdf_secondary_var, [("PDF", "*.pdf")])).grid(row=row, column=2)
 

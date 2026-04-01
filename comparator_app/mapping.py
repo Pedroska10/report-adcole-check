@@ -8,6 +8,12 @@ DEFAULT_MAPPING_TEXT = """# base_regex => secondary_key_pattern
 ^diamancal([a-g])$ => diametromancal\\1
 ^measdiam-([a-g])$ => diametromancal\\1
 ^cirmancal([a-g])$ => roundness-\\1
+^diametromancal([a-g])center$ => diametrocentral\\1
+^diametromancal([a-g])inf$ => diametroinferior\\1
+^diametromancal([a-g])sup$ => diametrosuperior\\1
+^erroanguloreferi6i(\\d+)$ => angleerrortocam11a6-lobe\\1
+^anguloentreassuperficies$ => nguloentreassuperfcies
+^desvioemrelacaoaosmancaisadjace$ => desvioemrelaoaosmancaisadjacentesa
 """
 
 
