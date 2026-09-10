@@ -21,6 +21,7 @@ def compare_rows(
     mapping_rules,
 ) -> list[ComparedRow]:
     compared: list[ComparedRow] = []
+    matched_secondary_keys: set[str] = set()
 
     field_getters = {
         "nominal_value": lambda row: row.nominal_value,
@@ -45,6 +46,7 @@ def compare_rows(
             )
             continue
 
+        matched_secondary_keys.add(mapped_key)
         mismatches: set[str] = set()
         for field_name, getter in field_getters.items():
             # In base table, blank measured value means "not measured".
@@ -61,6 +63,20 @@ def compare_rows(
                 status=status,
                 mismatched_fields=mismatches,
                 secondary_missing=False,
+            )
+        )
+
+    for secondary_key, secondary_row in secondary_by_key.items():
+        if secondary_key in matched_secondary_keys:
+            continue
+
+        compared.append(
+            ComparedRow(
+                row=secondary_row,
+                status="not ok",
+                mismatched_fields=set(),
+                secondary_missing=False,
+                base_missing=True,
             )
         )
 

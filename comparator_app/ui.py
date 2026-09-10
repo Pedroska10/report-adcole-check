@@ -306,7 +306,9 @@ class ComparatorApp(tk.Tk):
             if compared.status == "ok":
                 continue
 
-            if compared.secondary_missing:
+            if compared.base_missing:
+                detail = "Metrica encontrada no relatorio da maquina, mas nao no PDF"
+            elif compared.secondary_missing:
                 detail = "Metrica nao encontrada no relatorio secundario"
             else:
                 labels = {

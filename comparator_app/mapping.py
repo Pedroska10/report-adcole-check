@@ -4,7 +4,7 @@ import re
 MACHINE_OPTIONS = ("Adcole 911", "Adcole LX", "Adcole 1200DH")
 DEFAULT_PART = ""
 
-DEFAULT_MAPPING_TEXT = """# base_regex => secondary_key_pattern
+TEMPLATE_68_MAPPING_TEXT = """# base_regex => secondary_key_pattern
 ^angleerrortocam1-lobe(\\d+)$ => angleerrorcam1-lobe\\1
 ^angleofcam1toref$ => angleofcam1toref
 ^diametromancal([a-g])$ => diametromancal\\1
@@ -18,6 +18,8 @@ DEFAULT_MAPPING_TEXT = """# base_regex => secondary_key_pattern
 ^anguloentreassuperficies$ => nguloentreassuperfcies
 ^desvioemrelacaoaosmancaisadjace$ => desvioemrelaoaosmancaisadjacentesa
 """
+
+TEMPLATE_63_MAPPING_TEXT = TEMPLATE_68_MAPPING_TEXT
 
 VIRABREQUIM_MAPPING_TEXT = """# base_regex => secondary_key_pattern
 ^diametromancal([a-g])$ => diametromancal\\1
@@ -68,17 +70,21 @@ MACHINE_PART_CODES = {
 }
 
 PART_MAPPING_PRESETS = {
-    "EC-001": DEFAULT_MAPPING_TEXT,
-    "EC-002": DEFAULT_MAPPING_TEXT,
-    "EC-003": DEFAULT_MAPPING_TEXT,
-    "EC-004": DEFAULT_MAPPING_TEXT,
+    "1865230": TEMPLATE_68_MAPPING_TEXT,
+    "2208002": TEMPLATE_68_MAPPING_TEXT,
+    "2181766": TEMPLATE_63_MAPPING_TEXT,
+    "1832910": TEMPLATE_63_MAPPING_TEXT,
+    "EC-001": TEMPLATE_68_MAPPING_TEXT,
+    "EC-002": TEMPLATE_68_MAPPING_TEXT,
+    "EC-003": TEMPLATE_68_MAPPING_TEXT,
+    "EC-004": TEMPLATE_68_MAPPING_TEXT,
     "VR-001": VIRABREQUIM_MAPPING_TEXT,
     "VR-002": VIRABREQUIM_MAPPING_TEXT,
     "VR-003": VIRABREQUIM_MAPPING_TEXT,
     "VR-101": VIRABREQUIM_MAPPING_TEXT,
     "VR-102": VIRABREQUIM_MAPPING_TEXT,
     "VR-103": VIRABREQUIM_MAPPING_TEXT,
-    "padrao": DEFAULT_MAPPING_TEXT,
+    "padrao": TEMPLATE_68_MAPPING_TEXT,
 }
 
 

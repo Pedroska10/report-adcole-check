@@ -21,6 +21,20 @@ class MappingSelectionTests(unittest.TestCase):
         self.assertIn("^diametromancal", text)
         self.assertIn("^angleerrortocam1-lobe", text)
 
+    def test_template_68_is_selected_for_its_part_codes(self):
+        template_68_text = get_mapping_text_for_selection("1865230", ["Adcole 911"])
+        reused_template_text = get_mapping_text_for_selection("2208002", ["Adcole 911"])
+
+        self.assertEqual(template_68_text, reused_template_text)
+        self.assertIn("^angleerrortocam1-lobe", template_68_text)
+
+    def test_template_63_is_selected_for_its_part_codes(self):
+        template_63_text = get_mapping_text_for_selection("2181766", ["Adcole 911"])
+        reused_template_text = get_mapping_text_for_selection("1832910", ["Adcole 911"])
+
+        self.assertEqual(template_63_text, reused_template_text)
+        self.assertIn("^angleerrortocam1-lobe", template_63_text)
+
     def test_get_part_codes_for_machine_returns_catalog(self):
         codes = get_part_codes_for_machine("Adcole 911")
         self.assertTrue(codes)

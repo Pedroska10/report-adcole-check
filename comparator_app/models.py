@@ -18,3 +18,4 @@ class ComparedRow:
     status: str
     mismatched_fields: set[str]
     secondary_missing: bool
+    base_missing: bool = False
