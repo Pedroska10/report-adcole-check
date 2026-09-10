@@ -6,7 +6,14 @@ from tkinter.scrolledtext import ScrolledText
 
 from .comparison import compare_rows
 from .excel_export import write_output_excel
-from .mapping import DEFAULT_MAPPING_TEXT, parse_mapping_rules
+from .mapping import (
+    DEFAULT_PART,
+    MACHINE_OPTIONS,
+    MACHINE_PART_CODES,
+    get_mapping_text_for_selection,
+    get_part_codes_for_machine,
+    parse_mapping_rules,
+)
 from .naming import get_desktop_dir, suggested_output_name
 from .parsers import parse_caracteristicas_pdf, parse_secondary_pdf
 
@@ -20,6 +27,8 @@ class ComparatorApp(tk.Tk):
         self._configure_window_icon()
 
         self.desktop_dir = get_desktop_dir()
+        self.machine_var = tk.StringVar(value="Adcole 911")
+        self.part_code_var = tk.StringVar(value=DEFAULT_PART)
         self.pdf_base_var = tk.StringVar(value="")
         self.pdf_secondary_var = tk.StringVar(value="")
         self.model_var = tk.StringVar(value="modelo.xlsx")
@@ -58,38 +67,78 @@ class ComparatorApp(tk.Tk):
         container.pack(fill=tk.BOTH, expand=True)
 
         row = 0
-        ttk.Label(container, text="PDF base (Tabela Caracteristicas):").grid(row=row, column=0, sticky="w")
-        ttk.Entry(container, textvariable=self.pdf_base_var, width=95).grid(row=row, column=1, sticky="ew", padx=8)
-        ttk.Button(container, text="Selecionar", command=lambda: self._pick_file(self.pdf_base_var, [("PDF", "*.pdf")])).grid(row=row, column=2)
+        ttk.Label(container, text="Máquina:").grid(
+            row=row, column=0, sticky="w")
+        machine_combo = ttk.Combobox(
+            container,
+            textvariable=self.machine_var,
+            values=list(MACHINE_OPTIONS),
+            state="readonly",
+            width=30,
+        )
+        machine_combo.grid(row=row, column=1, sticky="w", padx=8)
+        machine_combo.bind("<<ComboboxSelected>>", self._on_machine_change)
 
         row += 1
-        ttk.Label(container, text="PDF Adcole:").grid(row=row, column=0, sticky="w")
-        ttk.Entry(container, textvariable=self.pdf_secondary_var, width=95).grid(row=row, column=1, sticky="ew", padx=8)
-        ttk.Button(container, text="Selecionar", command=lambda: self._pick_file(self.pdf_secondary_var, [("PDF", "*.pdf")])).grid(row=row, column=2)
+        ttk.Label(container, text="Part code:").grid(
+            row=row, column=0, sticky="w")
+        self.part_code_combo = ttk.Combobox(
+            container,
+            textvariable=self.part_code_var,
+            values=get_part_codes_for_machine(self.machine_var.get()),
+            state="readonly",
+            width=30,
+        )
+        self.part_code_combo.grid(row=row, column=1, sticky="w", padx=8)
+        self.part_code_combo.bind("<<ComboboxSelected>>", self._on_part_change)
 
         row += 1
-        ttk.Label(container, text="Modelo Excel:").grid(row=row, column=0, sticky="w")
-        ttk.Entry(container, textvariable=self.model_var, width=95).grid(row=row, column=1, sticky="ew", padx=8)
-        ttk.Button(container, text="Selecionar", command=lambda: self._pick_file(self.model_var, [("Excel", "*.xlsx")])).grid(row=row, column=2)
+        ttk.Label(container, text="PDF Piweb:").grid(
+            row=row, column=0, sticky="w")
+        ttk.Entry(container, textvariable=self.pdf_base_var, width=95).grid(
+            row=row, column=1, sticky="ew", padx=8)
+        ttk.Button(container, text="Selecionar", command=lambda: self._pick_file(
+            self.pdf_base_var, [("PDF", "*.pdf")])).grid(row=row, column=2)
 
         row += 1
-        ttk.Label(container, text="Regras de mapeamento (editavel):").grid(row=row, column=0, sticky="nw", pady=(12, 4))
+        ttk.Label(container, text="PDF Máquina:").grid(
+            row=row, column=0, sticky="w")
+        ttk.Entry(container, textvariable=self.pdf_secondary_var,
+                  width=95).grid(row=row, column=1, sticky="ew", padx=8)
+        ttk.Button(container, text="Selecionar", command=lambda: self._pick_file(
+            self.pdf_secondary_var, [("PDF", "*.pdf")])).grid(row=row, column=2)
+
+        row += 1
+        ttk.Label(container, text="Modelo Excel:").grid(
+            row=row, column=0, sticky="w")
+        ttk.Entry(container, textvariable=self.model_var, width=95).grid(
+            row=row, column=1, sticky="ew", padx=8)
+        ttk.Button(container, text="Selecionar", command=lambda: self._pick_file(
+            self.model_var, [("Excel", "*.xlsx")])).grid(row=row, column=2)
+
+        row += 1
+        ttk.Label(container, text="Regras de mapeamento (editavel):").grid(
+            row=row, column=0, sticky="nw", pady=(12, 4))
 
         self.mapping_text = ScrolledText(container, width=120, height=7)
-        self.mapping_text.grid(row=row, column=1, columnspan=2, sticky="ew", pady=(12, 4))
-        self.mapping_text.insert("1.0", DEFAULT_MAPPING_TEXT)
+        self.mapping_text.grid(
+            row=row, column=1, columnspan=2, sticky="ew", pady=(12, 4))
+        self._on_part_change()
 
         row += 1
         button_row = ttk.Frame(container)
         button_row.grid(row=row, column=1, columnspan=2, sticky="w", pady=8)
-        ttk.Button(button_row, text="Comparar e Exportar", command=self._run_compare).pack(side=tk.LEFT)
+        ttk.Button(button_row, text="Comparar e Exportar",
+                   command=self._run_compare).pack(side=tk.LEFT)
 
         row += 1
-        ttk.Label(container, text="Resumo de divergencias:").grid(row=row, column=0, sticky="w", pady=(8, 4))
+        ttk.Label(container, text="Resumo de divergencias:").grid(
+            row=row, column=0, sticky="w", pady=(8, 4))
 
         row += 1
         columns = ("characteristic", "status", "detail")
-        self.tree = ttk.Treeview(container, columns=columns, show="headings", height=18)
+        self.tree = ttk.Treeview(
+            container, columns=columns, show="headings", height=18)
         self.tree.heading("characteristic", text="Characteristic")
         self.tree.heading("status", text="Status")
         self.tree.heading("detail", text="Detalhes")
@@ -98,12 +147,32 @@ class ComparatorApp(tk.Tk):
         self.tree.column("detail", width=500)
         self.tree.grid(row=row, column=0, columnspan=3, sticky="nsew")
 
-        scroll = ttk.Scrollbar(container, orient="vertical", command=self.tree.yview)
+        scroll = ttk.Scrollbar(
+            container, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscroll=scroll.set)
         scroll.grid(row=row, column=3, sticky="ns")
 
         container.columnconfigure(1, weight=1)
         container.rowconfigure(row, weight=1)
+
+    def _selected_machine(self) -> str:
+        selected = self.machine_var.get().strip()
+        return selected if selected in MACHINE_OPTIONS else "Adcole 911"
+
+    def _on_machine_change(self, _event=None) -> None:
+        selected_machine = self._selected_machine()
+        part_codes = get_part_codes_for_machine(selected_machine)
+        self.part_code_combo["values"] = list(part_codes)
+        if part_codes:
+            self.part_code_var.set(part_codes[0])
+        self._on_part_change()
+
+    def _on_part_change(self, _event=None) -> None:
+        selected_machine = self._selected_machine()
+        mapping_text = get_mapping_text_for_selection(
+            self.part_code_var.get(), [selected_machine])
+        self.mapping_text.delete("1.0", tk.END)
+        self.mapping_text.insert("1.0", mapping_text)
 
     def _pick_file(self, target_var: tk.StringVar, filetypes: list[tuple[str, str]]) -> None:
         path = filedialog.askopenfilename(filetypes=filetypes)
@@ -137,11 +206,13 @@ class ComparatorApp(tk.Tk):
         candidates: list[Path] = [Path.cwd() / raw_model_path]
 
         # Source mode (project root) candidate.
-        candidates.append(Path(__file__).resolve().parent.parent / raw_model_path)
+        candidates.append(
+            Path(__file__).resolve().parent.parent / raw_model_path)
 
         # Frozen executable mode candidate.
         if getattr(sys, "frozen", False):
-            candidates.append(Path(sys.executable).resolve().parent / raw_model_path)
+            candidates.append(
+                Path(sys.executable).resolve().parent / raw_model_path)
 
         # PyInstaller temporary extraction folder candidate.
         if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
@@ -168,7 +239,8 @@ class ComparatorApp(tk.Tk):
         suggested = Path(self.output_var.get())
         path = filedialog.asksaveasfilename(
             title="Salvar resultado da comparacao",
-            initialdir=str(suggested.parent if suggested.parent else self.desktop_dir),
+            initialdir=str(
+                suggested.parent if suggested.parent else self.desktop_dir),
             initialfile=suggested.name,
             defaultextension=".xlsx",
             filetypes=[("Excel", "*.xlsx")],
@@ -179,6 +251,8 @@ class ComparatorApp(tk.Tk):
 
     def _run_compare(self) -> None:
         try:
+            selected_machine = self._selected_machine()
+            selected_part = self.part_code_var.get()
             base_pdf = Path(self.pdf_base_var.get()).expanduser()
             secondary_pdf = Path(self.pdf_secondary_var.get()).expanduser()
             raw_model_xlsx = Path(self.model_var.get()).expanduser()
@@ -186,24 +260,29 @@ class ComparatorApp(tk.Tk):
 
             for required in [base_pdf, secondary_pdf]:
                 if not required.exists():
-                    raise FileNotFoundError(f"Arquivo nao encontrado: {required}")
+                    raise FileNotFoundError(
+                        f"Arquivo nao encontrado: {required}")
 
             if model_xlsx is None:
                 model_xlsx = self._ask_model_file_if_missing()
                 if model_xlsx is None:
-                    messagebox.showinfo("Cancelado", "Modelo Excel nao selecionado.")
+                    messagebox.showinfo(
+                        "Cancelado", "Modelo Excel nao selecionado.")
                     return
 
-            mapping_rules = parse_mapping_rules(self.mapping_text.get("1.0", tk.END))
+            mapping_rules = parse_mapping_rules(
+                self.mapping_text.get("1.0", tk.END))
 
             base_rows = parse_caracteristicas_pdf(base_pdf)
             secondary_rows = parse_secondary_pdf(secondary_pdf)
 
-            compared_rows = compare_rows(base_rows, secondary_rows, mapping_rules)
+            compared_rows = compare_rows(
+                base_rows, secondary_rows, mapping_rules)
 
             output_xlsx = self._ask_output_path_after_compare()
             if output_xlsx is None:
-                messagebox.showinfo("Cancelado", "Salvamento cancelado pelo usuario.")
+                messagebox.showinfo(
+                    "Cancelado", "Salvamento cancelado pelo usuario.")
                 return
 
             self.output_var.set(str(output_xlsx))
@@ -214,7 +293,7 @@ class ComparatorApp(tk.Tk):
             not_ok = sum(1 for r in compared_rows if r.status == "not ok")
             messagebox.showinfo(
                 "Concluido",
-                f"Comparacao finalizada.\nTotal de linhas: {len(compared_rows)}\nnot ok: {not_ok}\nArquivo: {output_xlsx}",
+                f"Comparacao finalizada\nMáquina: {selected_machine}\nPart code: {selected_part}\nTotal de linhas: {len(compared_rows)}\nnot ok: {not_ok}\nArquivo: {output_xlsx}",
             )
 
         except Exception as exc:
@@ -238,7 +317,9 @@ class ComparatorApp(tk.Tk):
                     "deviation": "deviation",
                     "exceedance": "exceedance",
                 }
-                ordered = [labels[name] for name in labels if name in compared.mismatched_fields]
+                ordered = [labels[name]
+                           for name in labels if name in compared.mismatched_fields]
                 detail = ", ".join(ordered)
 
-            self.tree.insert("", tk.END, values=(compared.row.characteristic_name, compared.status, detail))
+            self.tree.insert("", tk.END, values=(
+                compared.row.characteristic_name, compared.status, detail))
