@@ -47,6 +47,10 @@ def compare_rows(
 
         mismatches: set[str] = set()
         for field_name, getter in field_getters.items():
+            # In base table, blank measured value means "not measured".
+            # In this case we ignore measured comparison for this row.
+            if field_name == "measured_value" and getter(row) is None:
+                continue
             if not values_equal(getter(row), getter(target)):
                 mismatches.add(field_name)
 

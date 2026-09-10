@@ -1,8 +1,11 @@
 import re
+import unicodedata
 
 
 def normalize_key(text: str) -> str:
-    raw = text.lower().strip()
+    folded = unicodedata.normalize("NFKD", text)
+    folded = "".join(ch for ch in folded if not unicodedata.combining(ch))
+    raw = folded.lower().strip()
     raw = raw.replace("[", "").replace("]", "")
     raw = raw.replace("_", "")
     raw = raw.replace(".", "")

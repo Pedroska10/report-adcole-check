@@ -21,9 +21,12 @@ Desktop app in Python (Tkinter) to compare values between two PDF reports and ex
 ## Output rules
 
 - Base rows come from `Tabela_Caracteristicas` PDF.
-- Secondary report can be any PDF that follows the same report layout.
+- Secondary report supports both layouts already validated in this project:
+   - classic Adcole report (cam table style)
+   - Portuguese report layout (`Nome / Nominal / Tolerancia / Valor Medido`)
 - Status column uses `ok` and `not ok`.
 - Comparison criteria uses only: nominal value, measured value, lower limit and upper limit.
+- If `measured value` is blank in `Tabela_Caracteristicas`, this field is ignored for that row.
 - Deviation and exceedance are exported but not used to decide `ok`/`not ok`.
 - Mismatched cells are highlighted in light red.
 - `NOT OK` cell is highlighted in light red when row has at least one mismatch.
