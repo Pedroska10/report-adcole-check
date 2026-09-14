@@ -19,7 +19,44 @@ TEMPLATE_68_MAPPING_TEXT = """# base_regex => secondary_key_pattern
 ^desvioemrelacaoaosmancaisadjace$ => desvioemrelaoaosmancaisadjacentesa
 """
 
-TEMPLATE_63_MAPPING_TEXT = TEMPLATE_68_MAPPING_TEXT
+TEMPLATE_63_MAPPING_TEXT = r"""# base_regex => secondary_key_pattern
+^angleerrortocam1-lobe((?:[1-9]|10))$ => angleerrorcam1-lobe\1
+^angleofcam1toref$ => angleofcam1toref
+^diametromancal([a-f])$ => diametromancal\1
+^diamancal([a-f])$ => diametromancal\1
+^measdiam-([a-f])$ => diametromancal\1
+^cirmancal([a-f])$ => roundness-\1
+^diametromancal([a-f])center$ => diametrocentral\1
+^diametromancal([a-f])inf$ => diametroinferior\1
+^diametromancal([a-f])sup$ => diametrosuperior\1
+^erroanguloreferi6i((?:[1-9]|10))$ => angleerrortocam11a6-lobe\1
+^anguloentreassuperficies$ => nguloentreassuperfcies
+^desvioemrelacaoaosmancaisadjace$ => desvioemrelaoaosmancaisadjacentesa
+"""
+
+TEMPLATE_500_MAPPING_TEXT = r"""# base_regex => secondary_key_pattern
+^angleerrorcam11a6-lobe(\d+)$ => angleerrorcam11a6-lobe\1
+^angleerroruz-lobe(\d+)$ => angleerroruz-lobe\1
+^angleofcam1toref$ => angleofcam1toref
+^bc-radius-error-lobe(\d+)$ => bc-radius-error-lobe\1
+^bc-runout-lobe(\d+)$ => bc-runout-lobe\1
+^concave/convex-lobe(\d+)$ => concave/convex-lobe\1
+^cylindricity-([a-g])$ => cylindricity-\1
+^diametro([a-g])\[center\]$ => diametro\1[center]
+^diametro([a-g])\[inf\]$ => diametro\1[inf]
+^diametro([a-g])\[sup\]$ => diametro\1[sup]
+^lift-difference-lobe(\d+)$ => lift-difference-lobe\1
+^lift-error-bc-lobe(\d+)$ => lift-error-bc-lobe\1
+^lift-error-closing-ramp-lobe(\d+)$ => lift-error-closing-ramp-lobe\1
+^lift-error-nose-lobe(\d+)$ => lift-error-nose-lobe\1
+^lift-error-opening-ramp-lobe(\d+)$ => lift-error-opening-ramp-lobe\1
+^meas-diam-\[center\]-([a-g])$ => meas-diam-[center]-\1
+^meas-diam-\[inf\]-([a-g])$ => meas-diam-[inf]-\1
+^meas-diam-\[sup\]-([a-g])$ => meas-diam-[sup]-\1
+^parallelism-([a-g])$ => parallelism-\1
+^parallelism-lobe(\d+)$ => parallelism-lobe\1
+^runout-\[(adj|ext|gage)\]-([a-g])$ => runout-[\1]-\2
+"""
 
 VIRABREQUIM_MAPPING_TEXT = """# base_regex => secondary_key_pattern
 ^diametromancal([a-g])$ => diametromancal\\1
@@ -74,6 +111,9 @@ PART_MAPPING_PRESETS = {
     "2208002": TEMPLATE_68_MAPPING_TEXT,
     "2181766": TEMPLATE_63_MAPPING_TEXT,
     "1832910": TEMPLATE_63_MAPPING_TEXT,
+    "3073595": TEMPLATE_500_MAPPING_TEXT,
+    "3070996": TEMPLATE_500_MAPPING_TEXT,
+    "3073597": TEMPLATE_500_MAPPING_TEXT,
     "EC-001": TEMPLATE_68_MAPPING_TEXT,
     "EC-002": TEMPLATE_68_MAPPING_TEXT,
     "EC-003": TEMPLATE_68_MAPPING_TEXT,

@@ -34,6 +34,28 @@ class MappingSelectionTests(unittest.TestCase):
 
         self.assertEqual(template_63_text, reused_template_text)
         self.assertIn("^angleerrortocam1-lobe", template_63_text)
+        self.assertIn("diametromancal([a-f])", template_63_text)
+        self.assertIn("((?:[1-9]|10))", template_63_text)
+
+        rules = get_mapping_rules_for_selection("2181766", ["Adcole 911"])
+        angle_rule = next(pattern for pattern, _ in rules if "angleerrortocam1" in pattern.pattern)
+        self.assertEqual(angle_rule.sub("angleerrorcam1-lobe\\1", "angleerrortocam1-lobe2"), "angleerrorcam1-lobe2")
+
+    def test_template_500_is_selected_for_3070996(self):
+        template_500_text = get_mapping_text_for_selection("3070996", ["Adcole 911"])
+
+        self.assertIn("^angleerrorcam11a6-lobe", template_500_text)
+        self.assertIn("^diametro", template_500_text)
+        self.assertNotEqual(
+            template_500_text,
+            get_mapping_text_for_selection("2181766", ["Adcole 911"]),
+        )
+
+        for part_code in ("3073595", "3073597"):
+            self.assertEqual(
+                template_500_text,
+                get_mapping_text_for_selection(part_code, ["Adcole 911"]),
+            )
 
     def test_get_part_codes_for_machine_returns_catalog(self):
         codes = get_part_codes_for_machine("Adcole 911")

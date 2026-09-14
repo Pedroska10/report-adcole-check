@@ -310,8 +310,112 @@ def parse_secondary_pdf(pdf_path: Path) -> dict[str, MeasurementRow]:
         if key not in data:
             data[key] = row
 
+    template_500_data = _parse_secondary_pdf_template_500(lines)
+    for key, row in template_500_data.items():
+        if key not in data:
+            data[key] = row
+
     if not data:
         raise ValueError("Nao foi possivel extrair informacoes da tabela secundaria.")
+
+    return data
+
+
+def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, MeasurementRow]:
+    """Parse the Swedish Adcole 500 report and expose aliases used by Piweb."""
+    data: dict[str, MeasurementRow] = {}
+    current_section = ""
+
+    section_aliases = {
+        "diameterundre": ("Meas Diam [Inf]", "Diametro", "Inf"),
+        "diametermitten": ("Meas Diam [Center]", "Diametro", "Center"),
+        "diameterovre": ("Meas Diam [Sup]", "Diametro", "Sup"),
+        "rundhetmittenprocessmatt": ("Cir_Mancal",),
+        "rundhet": ("Roundness",),
+        "kastmotnarliigandemitt": ("Runout [Adj]",),
+        "kastmotnarligandemitt": ("Runout [Adj]",),
+        "kastafmitt": ("Runout [Ext]",),
+        "kastmotdubbprocesmatt": ("Runout [Gage]",),
+        "cylindricitet": ("Cylindricity",),
+        "gcradie": ("BC Radius Error",),
+        "gckastmotnarligandelager": ("BC Runout",),
+        "parallellitetlinprofilmotnarligande": ("Parallelism",),
+        "konkavkonvex": ("Concave/Convex",),
+        "parallelitetover-undermotnarligande": ("Lift Difference",),
+        "vinkelfelkamtilrefuz": ("Angle error to UZ",),
+        "vinkelfelkamtillindexkamprocesmatt": ("Angle error to Cam 11 A6",),
+        "profilfelgruncirkel": ("Lift Error BC",),
+        "profilfeloppn": ("Lift Error Opening Ramp",),
+        "profilfeltopp": ("Lift Error Nose",),
+        "profilfelstang": ("Lift Error Closing Ramp",),
+    }
+
+    def add_row(names: list[str], numbers: list[float]) -> None:
+        if len(numbers) < 3:
+            return
+        row = _parse_row_numbers_pt(numbers)
+        for name in names:
+            data[normalize_key(name)] = MeasurementRow(
+                characteristic_name=name,
+                nominal_value=row.nominal_value,
+                measured_value=row.measured_value,
+                lower_limit=row.lower_limit,
+                upper_limit=row.upper_limit,
+                deviation=row.deviation,
+                exceedance=row.exceedance,
+            )
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line:
+            continue
+
+        normalized_section = normalize_key(line)
+
+        direct_metrics = {
+            "vinkelmellanytornau-z": "Angulo entre as superficies",
+            "avstandomradeutillrefaxel": "Distancia U para o Eixo de Rot",
+            "avstandomradeztillrefaxel": "Distancia Z para o Eixo de Rot",
+        }
+        for prefix, target_name in direct_metrics.items():
+            if normalized_section.startswith(prefix):
+                numbers = parse_numeric_tokens(line[len(line.split()[0]) :])
+                if len(numbers) >= 3:
+                    add_row([target_name], numbers)
+                break
+
+        if normalized_section in section_aliases:
+            current_section = normalized_section
+            continue
+
+        label_match = re.match(r"^(?:Lager\s+)?([A-G](?:\s+(?:nedre|övre))?|A\d+|D(?:52|72))\s+(.+)$", line, flags=re.IGNORECASE)
+        if not label_match or not current_section:
+            continue
+
+        label = label_match.group(1).upper()
+        numbers = parse_numeric_tokens(label_match.group(2))
+        aliases = section_aliases[current_section]
+
+        # The machine prints F nedre/F övre; Piweb represents them as F/G.
+        if label == "F NEDRE":
+            labels = ["F"]
+        elif label == "F ÖVRE":
+            labels = ["G"]
+        else:
+            labels = [label]
+
+        for label_value in labels:
+            for alias in aliases:
+                if alias in {"Inf", "Center", "Sup"}:
+                    continue
+                if alias == "Diametro":
+                    suffix = aliases[-1]
+                    add_row([f"{alias} {label_value} [{suffix}]"], numbers)
+                elif label_value.startswith("A") and label_value[1:].isdigit():
+                    lobe = int(label_value[1:])
+                    add_row([f"{alias} - Lobe {lobe}"], numbers)
+                else:
+                    add_row([f"{alias} - {label_value}"], numbers)
 
     return data
 
