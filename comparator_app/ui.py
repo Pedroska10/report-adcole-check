@@ -136,13 +136,15 @@ class ComparatorApp(tk.Tk):
             row=row, column=0, sticky="w", pady=(8, 4))
 
         row += 1
-        columns = ("characteristic", "status", "detail")
+        columns = ("characteristic", "secondary_characteristic", "status", "detail")
         self.tree = ttk.Treeview(
             container, columns=columns, show="headings", height=18)
         self.tree.heading("characteristic", text="Characteristic")
+        self.tree.heading("secondary_characteristic", text="Característica Adcole")
         self.tree.heading("status", text="Status")
         self.tree.heading("detail", text="Detalhes")
-        self.tree.column("characteristic", width=500)
+        self.tree.column("characteristic", width=350)
+        self.tree.column("secondary_characteristic", width=350)
         self.tree.column("status", width=90, anchor="center")
         self.tree.column("detail", width=500)
         self.tree.grid(row=row, column=0, columnspan=3, sticky="nsew")
@@ -324,4 +326,8 @@ class ComparatorApp(tk.Tk):
                 detail = ", ".join(ordered)
 
             self.tree.insert("", tk.END, values=(
-                compared.row.characteristic_name, compared.status, detail))
+                compared.row.characteristic_name,
+                compared.secondary_name or "Nao encontrada",
+                compared.status,
+                detail,
+            ))

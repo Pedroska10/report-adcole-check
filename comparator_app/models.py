@@ -15,7 +15,10 @@ class MeasurementRow:
 @dataclass
 class ComparedRow:
     row: MeasurementRow
+    secondary_name: str | None
     status: str
     mismatched_fields: set[str]
     secondary_missing: bool
     base_missing: bool = False
+    adcole_name: str | None = None
+    piweb_name: str | None = None

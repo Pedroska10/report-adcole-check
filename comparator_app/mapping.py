@@ -35,8 +35,8 @@ TEMPLATE_63_MAPPING_TEXT = r"""# base_regex => secondary_key_pattern
 """
 
 TEMPLATE_500_MAPPING_TEXT = r"""# base_regex => secondary_key_pattern
-^angleerrorcam11a6-lobe(\d+)$ => angleerrorcam11a6-lobe\1
-^angleerroruz-lobe(\d+)$ => angleerroruz-lobe\1
+^angleerrortocam11a6-lobe([1-5])$ => angleerrortocam11a6-lobe\1
+^angleerrortouz-lobe([1-5])$ => angleerrortouz-lobe\1
 ^angleofcam1toref$ => angleofcam1toref
 ^bc-radius-error-lobe(\d+)$ => bc-radius-error-lobe\1
 ^bc-runout-lobe(\d+)$ => bc-runout-lobe\1

@@ -39,6 +39,7 @@ def compare_rows(
             compared.append(
                 ComparedRow(
                     row=row,
+                    secondary_name=None,
                     status="not ok",
                     mismatched_fields=set(field_getters.keys()),
                     secondary_missing=True,
@@ -60,9 +61,15 @@ def compare_rows(
         compared.append(
             ComparedRow(
                 row=row,
+                secondary_name=(
+                    f"{target.characteristic_name} (Adcole) / "
+                    f"{row.characteristic_name} (Piweb)"
+                ),
                 status=status,
                 mismatched_fields=mismatches,
                 secondary_missing=False,
+                adcole_name=target.characteristic_name,
+                piweb_name=row.characteristic_name,
             )
         )
 
@@ -73,10 +80,12 @@ def compare_rows(
         compared.append(
             ComparedRow(
                 row=secondary_row,
+                secondary_name=f"{secondary_row.characteristic_name} (Adcole)",
                 status="not ok",
                 mismatched_fields=set(),
                 secondary_missing=False,
                 base_missing=True,
+                adcole_name=secondary_row.characteristic_name,
             )
         )
 

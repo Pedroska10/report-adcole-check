@@ -325,6 +325,7 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
     """Parse the Swedish Adcole 500 report and expose aliases used by Piweb."""
     data: dict[str, MeasurementRow] = {}
     current_section = ""
+    current_section_display = ""
 
     section_aliases = {
         "diameterundre": ("Meas Diam [Inf]", "Diametro", "Inf"),
@@ -340,9 +341,9 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
         "gcradie": ("BC Radius Error",),
         "gckastmotnarligandelager": ("BC Runout",),
         "parallellitetlinprofilmotnarligande": ("Parallelism",),
-        "konkavkonvex": ("Concave/Convex",),
+        "konkav-konvex": ("Concave/Convex",),
         "parallelitetover-undermotnarligande": ("Lift Difference",),
-        "vinkelfelkamtilrefuz": ("Angle error to UZ",),
+        "vinkelfelkamtillrefu-z": ("Angle error to UZ",),
         "vinkelfelkamtillindexkamprocesmatt": ("Angle error to Cam 11 A6",),
         "profilfelgruncirkel": ("Lift Error BC",),
         "profilfeloppn": ("Lift Error Opening Ramp",),
@@ -390,10 +391,29 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
 
         label_match = re.match(r"^(?:Lager\s+)?([A-G](?:\s+(?:nedre|övre))?|A\d+|D(?:52|72))\s+(.+)$", line, flags=re.IGNORECASE)
         if not label_match or not current_section:
+            if not label_match:
+                current_section = normalized_section
+                current_section_display = line
             continue
 
         label = label_match.group(1).upper()
         numbers = parse_numeric_tokens(label_match.group(2))
+        if current_section not in section_aliases:
+            if label == "F NEDRE":
+                labels = ["F"]
+            elif label == "F ÖVRE":
+                labels = ["G"]
+            else:
+                labels = [label]
+
+            for label_value in labels:
+                if label_value.startswith("A") and label_value[1:].isdigit():
+                    name = f"{current_section_display} - Lobe {int(label_value[1:])}"
+                else:
+                    name = f"{current_section_display} - {label_value}"
+                add_row([name], numbers)
+            continue
+
         aliases = section_aliases[current_section]
 
         # The machine prints F nedre/F övre; Piweb represents them as F/G.
@@ -480,6 +500,11 @@ def _parse_secondary_pdf_portuguese(lines: list[str]) -> dict[str, MeasurementRo
             continue
 
         if "Datatable:" in line or "Program:" in line:
+            continue
+
+        # Swedish template 500 rows are parsed with their section below.
+        # Do not create generic entries such as "Lager A" here.
+        if re.match(r"^(?:Lager\s+[A-G](?:\s+(?:nedre|övre))?|A\d+|D(?:52|72))\s+", line, flags=re.IGNORECASE):
             continue
 
         mancal_match = re.match(r"^Mancal\s+([A-G])\s+(.+)$", line, flags=re.IGNORECASE)
