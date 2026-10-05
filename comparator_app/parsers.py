@@ -342,7 +342,8 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
         "gckastmotnarligandelager": ("BC Runout",),
         "parallellitetlinprofilmotnarligande": ("Parallelism",),
         "konkav-konvex": ("Concave/Convex",),
-        "parallelitetover-undermotnarligande": ("Lift Difference",),
+        "parallelitetover-undermotnarligande": ("Parallelism",),
+        "sprangavvikelse": ("Lift Difference",),
         "vinkelfelkamtillrefu-z": ("Angle error to UZ",),
         "vinkelfelkamtillindexkamprocesmatt": ("Angle error to Cam 11 A6",),
         "profilfelgruncirkel": ("Lift Error BC",),
@@ -351,13 +352,13 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
         "profilfelstang": ("Lift Error Closing Ramp",),
     }
 
-    def add_row(names: list[str], numbers: list[float]) -> None:
+    def add_row(names: list[str], numbers: list[float], display_name: str | None = None) -> None:
         if len(numbers) < 3:
             return
         row = _parse_row_numbers_pt(numbers)
         for name in names:
             data[normalize_key(name)] = MeasurementRow(
-                characteristic_name=name,
+                characteristic_name=display_name or name,
                 nominal_value=row.nominal_value,
                 measured_value=row.measured_value,
                 lower_limit=row.lower_limit,
@@ -382,11 +383,13 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
             if normalized_section.startswith(prefix):
                 numbers = parse_numeric_tokens(line[len(line.split()[0]) :])
                 if len(numbers) >= 3:
-                    add_row([target_name], numbers)
+                    metric_name = line[: re.search(r"-?(?:\d+[.,]\d+|,\d+|\d+)", line).start()].strip()
+                    add_row([target_name], numbers, metric_name)
                 break
 
         if normalized_section in section_aliases:
             current_section = normalized_section
+            current_section_display = line
             continue
 
         label_match = re.match(r"^(?:Lager\s+)?([A-G](?:\s+(?:nedre|övre))?|A\d+|D(?:52|72))\s+(.+)$", line, flags=re.IGNORECASE)
@@ -430,12 +433,21 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
                     continue
                 if alias == "Diametro":
                     suffix = aliases[-1]
-                    add_row([f"{alias} {label_value} [{suffix}]"], numbers)
+                    piweb_name = f"{alias} {label_value} [{suffix}]"
                 elif label_value.startswith("A") and label_value[1:].isdigit():
                     lobe = int(label_value[1:])
-                    add_row([f"{alias} - Lobe {lobe}"], numbers)
+                    piweb_name = f"{alias} - Lobe {lobe}"
                 else:
-                    add_row([f"{alias} - {label_value}"], numbers)
+                    piweb_name = f"{alias} - {label_value}"
+
+                if label_value in {"F", "G"} and "Diameter" in current_section_display:
+                    adcole_label = "Lager F nedre" if label_value == "F" else "Lager F övre"
+                elif label_value.startswith("A") and label_value[1:].isdigit():
+                    adcole_label = label_value
+                else:
+                    adcole_label = f"Lager {label_value}"
+                adcole_name = f"{current_section_display} - {adcole_label}"
+                add_row([piweb_name], numbers, adcole_name)
 
     return data
 

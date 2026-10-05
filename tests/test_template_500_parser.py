@@ -20,6 +20,8 @@ class Template500ParserTests(unittest.TestCase):
             "Diameter (mitten)",
             "Lager F nedre 47,967 -,008 ,008 47,965 -,002",
             "Lager F övre 47,967 -,008 ,008 47,965 -,002",
+            "Cylindricitet",
+            "Lager A ,000 ,000 ,020 ,008 ,008",
             "GC radie",
             "A1 25,000 -,100 ,100 25,057 ,057",
             "Vinkelfel kam till indexkam (procesmått)",
@@ -49,11 +51,17 @@ class Template500ParserTests(unittest.TestCase):
             "Språngavvikelse",
             "A1 ,000 ,000 ,010 ,003 ,003",
             "A2 ,000 ,000 ,010 ,003 ,003",
+            "Parallelitet / (över-under) (mot närligande)",
+            "Lager A ,000 ,000 ,015 ,000 ,000",
         ]
 
         data = _parse_secondary_pdf_template_500(lines)
 
         self.assertEqual(data[normalize_key("Diametro A [Inf]")].measured_value, 35.966)
+        self.assertEqual(
+            data[normalize_key("Cylindricity - A")].characteristic_name,
+            "Cylindricitet - Lager A",
+        )
         self.assertEqual(data[normalize_key("Diametro F [Center]")].measured_value, 47.965)
         self.assertEqual(data[normalize_key("Diametro G [Center]")].measured_value, 47.965)
         self.assertEqual(data["bcradiuserror-lobe1"].measured_value, 25.057)
@@ -67,7 +75,10 @@ class Template500ParserTests(unittest.TestCase):
         self.assertEqual(data["concaveconvex-lobe5"].measured_value, 0.001)
         self.assertEqual(data["lifterrorclosingramp-lobe1"].measured_value, 0.039)
         self.assertEqual(data["lifterrorclosingramp-lobe5"].measured_value, 0.032)
-        self.assertEqual(data["sprangavvikelse-lobe1"].measured_value, 0.003)
+        self.assertEqual(data["liftdifference-lobe1"].measured_value, 0.003)
+
+        self.assertEqual(data["parallelism-a"].characteristic_name, "Parallelitet / (över-under) (mot närligande) - Lager A")
+        self.assertEqual(data["parallelism-a"].measured_value, 0.0)
 
 
 if __name__ == "__main__":
