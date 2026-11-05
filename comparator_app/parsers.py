@@ -429,7 +429,17 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
             labels = [label]
 
         for label_value in labels:
-            for alias in aliases:
+            aliases_for_label = aliases
+            if (
+                current_section in {
+                    "kastmotnarliigandemitt",
+                    "kastmotnarligandemitt",
+                }
+                and label_value in {"D52", "D72"}
+            ):
+                aliases_for_label = (*aliases, "Runout [Adj]")
+
+            for alias in aliases_for_label:
                 if alias in {"Inf", "Center", "Sup"}:
                     continue
                 if alias == "Diametro":

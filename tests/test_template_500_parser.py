@@ -100,6 +100,8 @@ class Template500ParserTests(unittest.TestCase):
         self.assertEqual(data["roundness-d52"].measured_value, 0.002)
         self.assertEqual(data["runoutext-d72"].measured_value, 0.003)
         self.assertEqual(data["runoutext-d52"].measured_value, 0.004)
+        self.assertEqual(data["runoutadj-d72"].measured_value, 0.003)
+        self.assertEqual(data["runoutadj-d52"].measured_value, 0.004)
         self.assertEqual(data["runoutadj-a"].measured_value, 0.005)
         self.assertEqual(data["runoutadj-b"].measured_value, 0.006)
 
