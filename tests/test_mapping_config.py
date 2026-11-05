@@ -3,6 +3,7 @@ import unittest
 
 from comparator_app.mapping import (
     MACHINE_OPTIONS,
+    apply_mapping,
     get_mapping_rules_for_selection,
     get_mapping_text_for_selection,
     get_part_codes_for_machine,
@@ -67,6 +68,26 @@ class MappingSelectionTests(unittest.TestCase):
                 mapping_rule.sub("angleerrortouz-lobe\\1", source),
                 f"angleerrortouz-lobe{lobe}",
             )
+
+    def test_template_500_maps_roundness_and_runout_features(self):
+        rules = get_mapping_rules_for_selection("3070996", ["Adcole 911"])
+
+        expected = {
+            "roundnessd52": "roundness-d52",
+            "roundnessd72": "roundness-d72",
+            "runout-adj-a": "runoutadj-a",
+            "runoutadjd52": "runoutadj-d52",
+            "runout-gage-a": "runoutgage-a",
+            "runoutgaged72": "runoutgage-d72",
+        }
+        for source, target in expected.items():
+            self.assertEqual(apply_mapping(source, rules), target)
+
+    def test_template_500_keeps_derived_runout_features_unmapped(self):
+        rules = get_mapping_rules_for_selection("3070996", ["Adcole 911"])
+
+        self.assertEqual(apply_mapping("runoutbc-a", rules), "runoutbc-a")
+        self.assertEqual(apply_mapping("runoutef-g", rules), "runoutef-g")
 
     def test_get_part_codes_for_machine_returns_catalog(self):
         codes = get_part_codes_for_machine("Adcole 911")

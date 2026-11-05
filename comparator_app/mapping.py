@@ -55,7 +55,9 @@ TEMPLATE_500_MAPPING_TEXT = r"""# base_regex => secondary_key_pattern
 ^meas-diam-\[sup\]-([a-g])$ => meas-diam-[sup]-\1
 ^parallelism-([a-g])$ => parallelism-\1
 ^parallelism-lobe(\d+)$ => parallelism-lobe\1
-^runout-\[(adj|ext|gage)\]-([a-g])$ => runout-[\1]-\2
+^roundness(d52|d72)$ => roundness-\1
+^runout-(adj|ext|gage)-([a-g])$ => runout\1-\2
+^runout(adj|gage)(d52|d72)$ => runout\1-\2
 """
 
 VIRABREQUIM_MAPPING_TEXT = """# base_regex => secondary_key_pattern

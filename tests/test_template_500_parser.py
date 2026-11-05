@@ -26,8 +26,10 @@ class Template500ParserTests(unittest.TestCase):
             "A1 25,000 -,100 ,100 25,057 ,057",
             "Vinkelfel kam till indexkam (procesmått)",
             "A1 ,000 -,125 ,125 ,000 ,000",
-            "Profilfel Topp",
+            "Profilfel Oppn",
             "A1 ,000 -,100 ,100 ,041 ,041",
+            "Profilfel Topp",
+            "A1 ,000 -,100 ,100 ,035 ,035",
             "Vinkel mellan ytorna U-Z 40,000 -,007 ,007 40,002 ,002",
             "Avstånd område U till ref.axel 39,700 -,050 ,050 39,689 -,011",
             "Vinkelfel kam till ref. U-Z",
@@ -67,6 +69,7 @@ class Template500ParserTests(unittest.TestCase):
         self.assertEqual(data["bcradiuserror-lobe1"].measured_value, 25.057)
         self.assertEqual(data["angleerrortocam11a6-lobe1"].measured_value, 0.0)
         self.assertEqual(data["lifterrornose-lobe1"].measured_value, 0.041)
+        self.assertEqual(data["lifterroropeningramp-lobe1"].measured_value, 0.035)
         self.assertEqual(data["anguloentreassuperficies"].measured_value, 40.002)
         self.assertEqual(data["distanciauparaoeixoderot"].measured_value, 39.689)
         self.assertEqual(data["angleerrortouz-lobe1"].measured_value, 306.177)
@@ -79,6 +82,26 @@ class Template500ParserTests(unittest.TestCase):
 
         self.assertEqual(data["parallelism-a"].characteristic_name, "Parallelitet / (över-under) (mot närligande) - Lager A")
         self.assertEqual(data["parallelism-a"].measured_value, 0.0)
+
+    def test_correlates_roundness_and_runout_aliases(self):
+        data = _parse_secondary_pdf_template_500([
+            "Rundhet",
+            "D72 ,000 -,010 ,010 ,001 ,001",
+            "D52 ,000 -,010 ,010 ,002 ,002",
+            "Kast mot närligande mitt",
+            "D72 ,000 -,010 ,010 ,003 ,003",
+            "D52 ,000 -,010 ,010 ,004 ,004",
+            "Kast; / A-F mitt",
+            "Lager A ,000 -,010 ,010 ,005 ,005",
+            "Lager B ,000 -,010 ,010 ,006 ,006",
+        ])
+
+        self.assertEqual(data["roundness-d72"].measured_value, 0.001)
+        self.assertEqual(data["roundness-d52"].measured_value, 0.002)
+        self.assertEqual(data["runoutext-d72"].measured_value, 0.003)
+        self.assertEqual(data["runoutext-d52"].measured_value, 0.004)
+        self.assertEqual(data["runoutadj-a"].measured_value, 0.005)
+        self.assertEqual(data["runoutadj-b"].measured_value, 0.006)
 
 
 if __name__ == "__main__":
