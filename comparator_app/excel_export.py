@@ -87,10 +87,8 @@ def write_output_excel(
 
         row = compared.row
         _set_cell_value(sheet, i, 1, i - 2)
-        _set_cell_value(sheet, i, 2, compared.adcole_name)
-        _set_cell_value(sheet, i, 3, compared.piweb_name or (
-            None if compared.base_missing else row.characteristic_name
-        ))
+        _set_cell_value(sheet, i, 2, compared.adcole_name or "Nao encontrada")
+        _set_cell_value(sheet, i, 3, compared.piweb_name or "Nao encontrada")
         _set_cell_value(sheet, i, 4, row.nominal_value)
         _set_cell_value(sheet, i, 5, row.measured_value)
         _set_cell_value(sheet, i, 6, row.lower_limit)

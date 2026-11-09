@@ -52,6 +52,20 @@ class BidirectionalComparisonTests(unittest.TestCase):
             compared[0].secondary_name,
             "Cylindricitet - Lager A (Adcole) / Cylindricity - A (Piweb)",
         )
+        self.assertEqual(compared[0].adcole_name, "Cylindricitet - Lager A")
+        self.assertEqual(compared[0].piweb_name, "Cylindricity - A")
+
+    def test_missing_report_names_are_kept_in_their_respective_columns(self):
+        compared = compare_rows(
+            [measurement("Only Piweb", 0.008)],
+            {"only-adcole": measurement("Only Adcole", 0.008)},
+            [],
+        )
+
+        self.assertEqual(compared[0].adcole_name, None)
+        self.assertEqual(compared[0].piweb_name, "Only Piweb")
+        self.assertEqual(compared[1].adcole_name, "Only Adcole")
+        self.assertEqual(compared[1].piweb_name, None)
 
     def test_template_500_maps_cam_11_a6_and_uz_lobes_one_to_five(self):
         names = [

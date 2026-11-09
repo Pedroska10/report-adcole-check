@@ -1,4 +1,5 @@
 import tkinter as tk
+import ctypes
 from pathlib import Path
 import sys
 from tkinter import filedialog, messagebox, ttk
@@ -18,6 +19,9 @@ from .naming import get_desktop_dir, suggested_output_name
 from .parsers import parse_caracteristicas_pdf, parse_secondary_pdf
 
 
+APP_BORDER_COLOR = "#042433"
+
+
 class ComparatorApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
@@ -25,6 +29,7 @@ class ComparatorApp(tk.Tk):
         self.geometry("1200x780")
         self._icon_image = None
         self._configure_window_icon()
+        self.after_idle(self._configure_window_chrome)
 
         self.desktop_dir = get_desktop_dir()
         self.machine_var = tk.StringVar(value="Adcole 911")
@@ -62,9 +67,36 @@ class ComparatorApp(tk.Tk):
                 except Exception:
                     pass
 
+    def _configure_window_chrome(self) -> None:
+        if sys.platform != "win32":
+            return
+
+        try:
+            hwnd = self.winfo_id()
+            color = int(APP_BORDER_COLOR[5:7] + APP_BORDER_COLOR[3:5] + APP_BORDER_COLOR[1:3], 16)
+            caption_color = ctypes.c_uint32(color)
+            text_color = ctypes.c_uint32(0x00FFFFFF)
+            ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                hwnd,
+                35,
+                ctypes.byref(caption_color),
+                ctypes.sizeof(caption_color),
+            )
+            ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                hwnd,
+                36,
+                ctypes.byref(text_color),
+                ctypes.sizeof(text_color),
+            )
+        except (AttributeError, OSError):
+            pass
+
     def _build_ui(self) -> None:
-        container = ttk.Frame(self, padding=12)
-        container.pack(fill=tk.BOTH, expand=True)
+        border = tk.Frame(self, bg=APP_BORDER_COLOR, bd=0, highlightthickness=0)
+        border.pack(fill=tk.BOTH, expand=True)
+
+        container = ttk.Frame(border, padding=12)
+        container.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
 
         row = 0
         ttk.Label(container, text="Máquina:").grid(
@@ -139,8 +171,8 @@ class ComparatorApp(tk.Tk):
         columns = ("characteristic", "secondary_characteristic", "status", "detail")
         self.tree = ttk.Treeview(
             container, columns=columns, show="headings", height=18)
-        self.tree.heading("characteristic", text="Characteristic")
-        self.tree.heading("secondary_characteristic", text="Característica Adcole")
+        self.tree.heading("characteristic", text="Característica Adcole")
+        self.tree.heading("secondary_characteristic", text="Característica Piweb")
         self.tree.heading("status", text="Status")
         self.tree.heading("detail", text="Detalhes")
         self.tree.column("characteristic", width=350)
@@ -326,8 +358,8 @@ class ComparatorApp(tk.Tk):
                 detail = ", ".join(ordered)
 
             self.tree.insert("", tk.END, values=(
-                compared.row.characteristic_name,
-                compared.secondary_name or "Nao encontrada",
+                compared.adcole_name or "Nao encontrada",
+                compared.piweb_name or "Nao encontrada",
                 compared.status,
                 detail,
             ))

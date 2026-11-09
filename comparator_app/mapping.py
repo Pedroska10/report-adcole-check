@@ -35,16 +35,21 @@ TEMPLATE_63_MAPPING_TEXT = r"""# base_regex => secondary_key_pattern
 """
 
 TEMPLATE_500_MAPPING_TEXT = r"""# base_regex => secondary_key_pattern
-^angleerrortocam11a6-lobe([1-5])$ => angleerrortocam11a6-lobe\1
+^angleerrortocam11a6(?:-?process)?-lobe([1-6])$ => angleerrortocam11a6-lobe\1
 ^angleerrortouz-lobe([1-5])$ => angleerrortouz-lobe\1
 ^angleofcam1toref$ => angleofcam1toref
 ^bc-radius-error-lobe(\d+)$ => bc-radius-error-lobe\1
 ^bc-runout-lobe(\d+)$ => bc-runout-lobe\1
 ^concave/convex-lobe(\d+)$ => concave/convex-lobe\1
 ^cylindricity-([a-g])$ => cylindricity-\1
-^diametro([a-g])\[center\]$ => diametro\1[center]
-^diametro([a-g])\[inf\]$ => diametro\1[inf]
-^diametro([a-g])\[sup\]$ => diametro\1[sup]
+^diameter([a-g])center$ => diametro\1center
+^diameter([a-g])inf$ => diametro\1inf
+^diameter([a-g])sup$ => diametro\1sup
+^diameterd(52|72)lower$ => diametrod\1inf
+^diameterd(52|72)center$ => diametrod\1center
+^diameterd(52|72)upper$ => diametrod\1sup
+^parallelismd52$ => parallellitetmotnarligandeejritningskrav-d52
+^overunderparallelismd52$ => parallelitetover-underejritningskrav-d52
 ^lift-difference-lobe(\d+)$ => lift-difference-lobe\1
 ^lift-error-bc-lobe(\d+)$ => lift-error-bc-lobe\1
 ^lift-error-closing-ramp-lobe(\d+)$ => lift-error-closing-ramp-lobe\1
@@ -56,8 +61,8 @@ TEMPLATE_500_MAPPING_TEXT = r"""# base_regex => secondary_key_pattern
 ^parallelism-([a-g])$ => parallelism-\1
 ^parallelism-lobe(\d+)$ => parallelism-lobe\1
 ^roundness(d52|d72)$ => roundness-\1
-^runout-(adj|ext|gage)-([a-g])$ => runout\1-\2
-^runout(adj|gage)(d52|d72)$ => runout\1-\2
+^runout-?(adj|ext|gage)(?:-?process)?-?([a-g])$ => runout\1-\2
+^runout-?(adj|gage)(?:-?process)?-?(d52|d72)$ => runout\1-\2
 """
 
 VIRABREQUIM_MAPPING_TEXT = """# base_regex => secondary_key_pattern

@@ -60,6 +60,7 @@ class Template500ParserTests(unittest.TestCase):
         data = _parse_secondary_pdf_template_500(lines)
 
         self.assertEqual(data[normalize_key("Diametro A [Inf]")].measured_value, 35.966)
+        self.assertNotIn(normalize_key("Meas Diam [Inf] - A"), data)
         self.assertEqual(
             data[normalize_key("Cylindricity - A")].characteristic_name,
             "Cylindricitet - Lager A",
@@ -94,6 +95,7 @@ class Template500ParserTests(unittest.TestCase):
             "Kast; / A-F mitt",
             "Lager A ,000 -,010 ,010 ,005 ,005",
             "Lager B ,000 -,010 ,010 ,006 ,006",
+            "Lager G ,000 -,010 ,010 ,007 ,007",
         ])
 
         self.assertEqual(data["roundness-d72"].measured_value, 0.001)
@@ -104,6 +106,8 @@ class Template500ParserTests(unittest.TestCase):
         self.assertEqual(data["runoutadj-d52"].measured_value, 0.004)
         self.assertEqual(data["runoutadj-a"].measured_value, 0.005)
         self.assertEqual(data["runoutadj-b"].measured_value, 0.006)
+        self.assertEqual(data["runoutb-c-a"].measured_value, 0.005)
+        self.assertEqual(data["runoute-f-g"].measured_value, 0.007)
 
 
 if __name__ == "__main__":

@@ -43,6 +43,7 @@ def compare_rows(
                     status="not ok",
                     mismatched_fields=set(field_getters.keys()),
                     secondary_missing=True,
+                    piweb_name=row.characteristic_name,
                 )
             )
             continue

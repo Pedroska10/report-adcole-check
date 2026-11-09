@@ -45,8 +45,8 @@ class MappingSelectionTests(unittest.TestCase):
     def test_template_500_is_selected_for_3070996(self):
         template_500_text = get_mapping_text_for_selection("3070996", ["Adcole 911"])
 
-        self.assertIn("^angleerrortocam11a6-lobe", template_500_text)
-        self.assertIn("^diametro", template_500_text)
+        self.assertIn("angleerrortocam11a6", template_500_text)
+        self.assertIn("^diameter", template_500_text)
         self.assertNotEqual(
             template_500_text,
             get_mapping_text_for_selection("2181766", ["Adcole 911"]),
@@ -73,17 +73,29 @@ class MappingSelectionTests(unittest.TestCase):
         rules = get_mapping_rules_for_selection("3070996", ["Adcole 911"])
 
         expected = {
+            "diameteracenter": "diametroacenter",
+            "diameterfinf": "diametrofinf",
+            "diameterd52center": "diametrod52center",
+            "diameterd52lower": "diametrod52inf",
+            "diameterd52upper": "diametrod52sup",
+            "parallelismd52": "parallellitetmotnarligandeejritningskrav-d52",
+            "overunderparallelismd52": "parallelitetover-underejritningskrav-d52",
             "roundnessd52": "roundness-d52",
             "roundnessd72": "roundness-d72",
             "runout-adj-a": "runoutadj-a",
             "runoutadjd52": "runoutadj-d52",
             "runout-gage-a": "runoutgage-a",
             "runoutgaged72": "runoutgage-d72",
+            "runout-gage-process-a": "runoutgage-a",
+            "runoutgageprocessd72": "runoutgage-d72",
+            "runout-gage-process-g": "runoutgage-g",
+            "angleerrortocam11a6-process-lobe1": "angleerrortocam11a6-lobe1",
+            "angleerrortocam11a6-process-lobe6": "angleerrortocam11a6-lobe6",
         }
         for source, target in expected.items():
             self.assertEqual(apply_mapping(source, rules), target)
 
-    def test_template_500_keeps_derived_runout_features_unmapped(self):
+    def test_template_500_keeps_derived_runout_features_unmodified(self):
         rules = get_mapping_rules_for_selection("3070996", ["Adcole 911"])
 
         self.assertEqual(apply_mapping("runoutbc-a", rules), "runoutbc-a")

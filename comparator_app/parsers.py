@@ -322,15 +322,19 @@ def parse_secondary_pdf(pdf_path: Path) -> dict[str, MeasurementRow]:
 
 
 def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, MeasurementRow]:
-    """Parse the Swedish Adcole 500 report and expose aliases used by Piweb."""
+    """Parse the Swedish Adcole 500 report using one key per measurement."""
     data: dict[str, MeasurementRow] = {}
     current_section = ""
     current_section_display = ""
+    diameter_section_index = 0
 
     section_aliases = {
-        "diameterundre": ("Meas Diam [Inf]", "Diametro", "Inf"),
-        "diametermitten": ("Meas Diam [Center]", "Diametro", "Center"),
-        "diameterovre": ("Meas Diam [Sup]", "Diametro", "Sup"),
+        "diameterundre": ("Diametro", "Inf"),
+        "diametermitten": ("Diametro", "Center"),
+        "diameterovre": ("Diametro", "Sup"),
+        "diameterinf": ("Diametro", "Inf"),
+        "diametercenter": ("Diametro", "Center"),
+        "diametersup": ("Diametro", "Sup"),
         "rundhetmittenprocessmatt": ("Cir_Mancal",),
         "rundhet": ("Roundness",),
         "kastmotnarliigandemitt": ("Runout [Ext]",),
@@ -374,6 +378,13 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
             continue
 
         normalized_section = normalize_key(line)
+
+        if normalized_section == "diameter":
+            diameter_section_index += 1
+            suffix = ("Inf", "Center", "Sup")[min(diameter_section_index - 1, 2)]
+            current_section = f"diameter{suffix.lower()}"
+            current_section_display = line
+            continue
 
         direct_metrics = {
             "vinkelmellanytornau-z": "Angulo entre as superficies",
@@ -438,6 +449,11 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
                 and label_value in {"D52", "D72"}
             ):
                 aliases_for_label = (*aliases, "Runout [Adj]")
+            elif current_section in {"kasta-fmitt", "kastafmitt"}:
+                if label_value == "A":
+                    aliases_for_label = (*aliases, "Runout [B-C]")
+                elif label_value == "G":
+                    aliases_for_label = (*aliases, "Runout [E-F]")
 
             for alias in aliases_for_label:
                 if alias in {"Inf", "Center", "Sup"}:
