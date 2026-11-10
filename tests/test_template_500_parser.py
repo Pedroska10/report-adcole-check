@@ -73,6 +73,8 @@ class Template500ParserTests(unittest.TestCase):
         self.assertEqual(data["lifterroropeningramp-lobe1"].measured_value, 0.035)
         self.assertEqual(data["anguloentreassuperficies"].measured_value, 40.002)
         self.assertEqual(data["distanciauparaoeixoderot"].measured_value, 39.689)
+        self.assertNotIn("vinkelmellanytornau-z", data)
+        self.assertNotIn("avstandomradeutillrefaxel", data)
         self.assertEqual(data["angleerrortouz-lobe1"].measured_value, 306.177)
         self.assertEqual(data["angleerrortouz-lobe5"].measured_value, 98.777)
         self.assertEqual(data["concaveconvex-lobe1"].measured_value, 0.001)

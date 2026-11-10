@@ -315,6 +315,15 @@ def parse_secondary_pdf(pdf_path: Path) -> dict[str, MeasurementRow]:
         if key not in data:
             data[key] = row
 
+    ref_key_face_aliases = {
+        "vinkelmellanytornau-z": "anguloentreassuperficies",
+        "avstandomradeutillrefaxel": "distanciauparaoeixoderot",
+        "avstandomradeztillrefaxel": "distanciazparaoeixoderot",
+    }
+    for alias_key, canonical_key in ref_key_face_aliases.items():
+        if canonical_key in data:
+            data.pop(alias_key, None)
+
     if not data:
         raise ValueError("Nao foi possivel extrair informacoes da tabela secundaria.")
 
