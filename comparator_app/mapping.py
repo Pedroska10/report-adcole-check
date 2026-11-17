@@ -40,6 +40,7 @@ TEMPLATE_500_MAPPING_TEXT = r"""# base_regex => secondary_key_pattern
 ^angleofcam1toref$ => angleofcam1toref
 ^bc-radius-error-lobe(\d+)$ => bc-radius-error-lobe\1
 ^bc-runout-lobe(\d+)$ => bc-runout-lobe\1
+^circlebaserunout-?process-lobe([1-5])$ => runoutgage-lobe\1
 ^concave/convex-lobe(\d+)$ => concave/convex-lobe\1
 ^cylindricity-([a-g])$ => cylindricity-\1
 ^diameter([a-g])center$ => diametro\1center
@@ -60,6 +61,13 @@ TEMPLATE_500_MAPPING_TEXT = r"""# base_regex => secondary_key_pattern
 ^meas-diam-\[sup\]-([a-g])$ => meas-diam-[sup]-\1
 ^parallelism-([a-g])$ => parallelism-\1
 ^parallelism-lobe(\d+)$ => parallelism-lobe\1
+^roundnessprocess-lobe1$ => cirmancal-a
+^roundnessprocess-lobe2$ => cirmancal-b
+^roundnessprocess-lobe3$ => cirmancal-c
+^roundnessprocess-lobe4$ => cirmancal-d
+^roundnessprocess-lobe5$ => cirmancal-e
+^roundnessprocess-lobe6lower$ => cirmancal-f
+^roundnessprocess-lobe6upper$ => cirmancal-g
 ^roundness(d52|d72)$ => roundness-\1
 ^runout-?(adj|ext|gage)(?:-?process)?-?([a-g])$ => runout\1-\2
 ^runout-?(adj|gage)(?:-?process)?-?(d52|d72)$ => runout\1-\2

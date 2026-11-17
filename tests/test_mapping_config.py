@@ -89,6 +89,12 @@ class MappingSelectionTests(unittest.TestCase):
             "runout-gage-process-a": "runoutgage-a",
             "runoutgageprocessd72": "runoutgage-d72",
             "runout-gage-process-g": "runoutgage-g",
+            "circlebaserunout-process-lobe1": "runoutgage-lobe1",
+            "circlebaserunout-process-lobe5": "runoutgage-lobe5",
+            "roundnessprocess-lobe1": "cirmancal-a",
+            "roundnessprocess-lobe5": "cirmancal-e",
+            "roundnessprocess-lobe6lower": "cirmancal-f",
+            "roundnessprocess-lobe6upper": "cirmancal-g",
             "angleerrortocam11a6-process-lobe1": "angleerrortocam11a6-lobe1",
             "angleerrortocam11a6-process-lobe6": "angleerrortocam11a6-lobe6",
         }

@@ -94,6 +94,9 @@ class Template500ParserTests(unittest.TestCase):
             "Kast mot närligande mitt",
             "D72 ,000 -,010 ,010 ,003 ,003",
             "D52 ,000 -,010 ,010 ,004 ,004",
+            "Kast; mot närligande mitt",
+            "Lager A ,000 -,010 ,010 ,008 ,008",
+            "Lager G ,000 -,010 ,010 ,009 ,009",
             "Kast; / A-F mitt",
             "Lager A ,000 -,010 ,010 ,005 ,005",
             "Lager B ,000 -,010 ,010 ,006 ,006",
@@ -102,14 +105,26 @@ class Template500ParserTests(unittest.TestCase):
 
         self.assertEqual(data["roundness-d72"].measured_value, 0.001)
         self.assertEqual(data["roundness-d52"].measured_value, 0.002)
-        self.assertEqual(data["runoutext-d72"].measured_value, 0.003)
-        self.assertEqual(data["runoutext-d52"].measured_value, 0.004)
         self.assertEqual(data["runoutadj-d72"].measured_value, 0.003)
         self.assertEqual(data["runoutadj-d52"].measured_value, 0.004)
+        self.assertNotIn("runoutext-d72", data)
+        self.assertNotIn("runoutext-d52", data)
         self.assertEqual(data["runoutadj-a"].measured_value, 0.005)
         self.assertEqual(data["runoutadj-b"].measured_value, 0.006)
-        self.assertEqual(data["runoutb-c-a"].measured_value, 0.005)
-        self.assertEqual(data["runoute-f-g"].measured_value, 0.007)
+        self.assertEqual(data["runoutb-c-a"].measured_value, 0.008)
+        self.assertEqual(data["runoute-f-g"].measured_value, 0.009)
+
+    def test_correlates_gc_process_runout_lobes(self):
+        data = _parse_secondary_pdf_template_500([
+            "GC Kast / mot dubb (processmatt)",
+            "A1 ,000 -,010 ,010 ,001 ,001",
+            "A2 ,000 -,010 ,010 ,002 ,002",
+            "A5 ,000 -,010 ,010 ,005 ,005",
+        ])
+
+        self.assertEqual(data["runoutgage-lobe1"].measured_value, 0.001)
+        self.assertEqual(data["runoutgage-lobe2"].measured_value, 0.002)
+        self.assertEqual(data["runoutgage-lobe5"].measured_value, 0.005)
 
 
 if __name__ == "__main__":

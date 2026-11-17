@@ -351,6 +351,8 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
         "kasta-fmitt": ("Runout [Adj]",),
         "kastafmitt": ("Runout [Adj]",),
         "kastmotdubbprocesmatt": ("Runout [Gage]",),
+        "gckastmotdubbprocesmatt": ("Runout [Gage]",),
+        "gckastmotdubbprocessmatt": ("Runout [Gage]",),
         "cylindricitet": ("Cylindricity",),
         "gcradie": ("BC Radius Error",),
         "gckastmotnarligandelager": ("BC Runout",),
@@ -457,12 +459,15 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
                 }
                 and label_value in {"D52", "D72"}
             ):
-                aliases_for_label = (*aliases, "Runout [Adj]")
-            elif current_section in {"kasta-fmitt", "kastafmitt"}:
+                aliases_for_label = ("Runout [Adj]",)
+            elif current_section in {
+                "kastmotnarliigandemitt",
+                "kastmotnarligandemitt",
+            }:
                 if label_value == "A":
-                    aliases_for_label = (*aliases, "Runout [B-C]")
+                    aliases_for_label = ("Runout [B-C]",)
                 elif label_value == "G":
-                    aliases_for_label = (*aliases, "Runout [E-F]")
+                    aliases_for_label = ("Runout [E-F]",)
 
             for alias in aliases_for_label:
                 if alias in {"Inf", "Center", "Sup"}:
