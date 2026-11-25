@@ -423,7 +423,8 @@ def _parse_secondary_pdf_template_500(lines: list[str]) -> dict[str, Measurement
             continue
 
         label = label_match.group(1).upper()
-        numbers = parse_numeric_tokens(label_match.group(2))
+        value_text = re.sub(r"^\(@[^)]*\)\s*", "", label_match.group(2))
+        numbers = parse_numeric_tokens(value_text)
         if current_section not in section_aliases:
             if label == "F NEDRE":
                 labels = ["F"]
@@ -561,7 +562,7 @@ def _parse_secondary_pdf_portuguese(lines: list[str]) -> dict[str, MeasurementRo
             continue
 
         mancal_match = re.match(r"^Mancal\s+([A-G])\s+(.+)$", line, flags=re.IGNORECASE)
-        i_match = re.match(r"^(I\d+)\b(?:\s*\(@[^)]*\))?\s+(.+)$", line, flags=re.IGNORECASE)
+        i_match = re.match(r"^((?:I|A)\d+)\b(?:\s*\(@[^)]*\))?\s+(.+)$", line, flags=re.IGNORECASE)
         dm_match = re.match(r"^(DM\d+)\s+(.+)$", line, flags=re.IGNORECASE)
 
         if mancal_match:
@@ -573,31 +574,36 @@ def _parse_secondary_pdf_portuguese(lines: list[str]) -> dict[str, MeasurementRo
             row = _parse_row_numbers_pt(numbers)
             section = current_section or "Mancal"
 
-            candidate_names = [
-                f"{section} [{mancal}]",
-                f"{section} - {mancal}",
-                f"Mancal {mancal}",
-            ]
+            normalized_section = normalize_key(section)
+            candidate_names: list[str] = []
 
-            if "diametro" in normalize_key(section):
-                candidate_names.extend(
-                    [
-                        f"Diametro Mancal {mancal}",
-                        f"Dia Mancal {mancal}",
-                        f"Meas Diam - {mancal}",
-                    ]
-                )
-
-            if "cilindricidade" in normalize_key(section):
-                candidate_names.extend([f"Cilindricidade [{mancal}]", f"Cylindricity - {mancal}"])
-
-            if "paralelismo" in normalize_key(section):
-                candidate_names.append(f"Parallelism [{mancal}]")
+            if normalized_section == "diametroinferior":
+                candidate_names = [f"Meas Diam [Inf]- {mancal}"]
+            elif normalized_section == "diametrocentral":
+                candidate_names = [f"Meas Diam [Center]- {mancal}"]
+            elif normalized_section == "diametrosuperior":
+                candidate_names = [f"Meas Diam [Sup]- {mancal}"]
+            elif "lindric" in normalized_section or "cilindric" in normalized_section:
+                candidate_names = [f"Cylindricity - {mancal}"]
+            elif "paralelismo" in normalized_section:
+                candidate_names = [f"Parallelism - {mancal}"]
+            elif normalized_section == "desvioemrelacaoaosmancaisadjacentes":
+                candidate_names = [f"Runout [Adj] - {mancal}"]
+            elif normalized_section == "desvioemrelacaob-c":
+                candidate_names = [f"Runout [B-C] - {mancal}"]
+            elif normalized_section == "desvioemrelacaoe-f":
+                candidate_names = [f"Runout [E-F] - {mancal}"]
+            elif normalized_section == "desvioemrelacaoaosextremos":
+                candidate_names = [f"Runout [Ext] - {mancal}"]
+            elif normalized_section == "desvioemrelacaoaosmancais":
+                candidate_names = [f"Runout [Gage] - {mancal}"]
+            else:
+                candidate_names = []
 
             for name in candidate_names:
                 key = normalize_key(name)
                 data[key] = MeasurementRow(
-                    characteristic_name=name,
+                    characteristic_name=f"{section} - Mancal {mancal}",
                     nominal_value=row.nominal_value,
                     measured_value=row.measured_value,
                     lower_limit=row.lower_limit,
@@ -628,14 +634,34 @@ def _parse_secondary_pdf_portuguese(lines: list[str]) -> dict[str, MeasurementRo
                 alias_names.append(f"Angulo Refer. UZ [{i_label}]")
             if normalized_section == "erroanguloparareferenciai6":
                 alias_names.append(f"Angle error to Cam 11 A6 - Lobe {idx}")
+            elif normalized_section == "erroanguloparareferenciaa6":
+                alias_names.append(f"Angle error to Cam 11 A6 - Lobe {idx}")
+            if normalized_section == "angulorefercam1" or normalized_section == "errounguloparacam1":
+                alias_names.append(f"Angle error to Cam 1 - Lobe {idx}")
+            if normalized_section == "erroanguloparapino":
+                alias_names.append(f"Angle error to Pin - Lobe {idx}")
+            if normalized_section == "angulodacam1aref" or normalized_section == "angulodacam1parareferencia":
+                alias_names.append("Angle of Cam 1 to ref.")
             if normalized_section == "raiodocirculobase":
                 alias_names.append(f"BC Radius Error - Lobe {idx}")
             if normalized_section == "desviodocirculobase":
                 alias_names.append(f"BC Runout - Lobe {idx}")
-            if normalized_section == "concavoconvexo":
-                alias_names.extend([f"Concavo/Convexo [{i_label}]", f"Concave/Convex - Lobe {idx}"])
             if normalized_section == "desviodevelocidade":
                 alias_names.append(f"BC Velocity Error - Lobe {idx}")
+            if normalized_section == "desviodocentro":
+                alias_names.append(f"Center Deviation - Lobe {idx}")
+            if normalized_section == "concavoconvexo":
+                alias_names.extend([f"Concavo/Convexo [{i_label}]", f"Concave/Convex - Lobe {idx}"])
+            if normalized_section == "paralelismo":
+                alias_names.append(f"Parallelism - Lobe {idx}")
+            if normalized_section == "desvioemrelacaof-g":
+                alias_names.append(f"Lift Difference Nose - Lobe {idx}")
+            if normalized_section == "sprangavvikelse" or normalized_section == "sprangavikelse":
+                alias_names.append(f"Lift Difference - Lobe {idx}")
+            if normalized_section == "diferencadelevacaoponta":
+                alias_names.append(f"Lift Difference Nose - Lobe {idx}")
+            if normalized_section == "diferencadelevacaorampa":
+                alias_names.append(f"Lift Difference Ramp - Lobe {idx}")
             if normalized_section == "errodeperfiltopo":
                 alias_names.append(f"Lift Error Nose - Lobe {idx}")
             if normalized_section == "errodeperfilfechamentodoflanco":

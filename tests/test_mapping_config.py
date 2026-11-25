@@ -7,6 +7,8 @@ from comparator_app.mapping import (
     get_mapping_rules_for_selection,
     get_mapping_text_for_selection,
     get_part_codes_for_machine,
+    PART_TEMPLATE_IDS,
+    get_template_id_for_part,
 )
 
 
@@ -107,12 +109,56 @@ class MappingSelectionTests(unittest.TestCase):
         self.assertEqual(apply_mapping("runoutbc-a", rules), "runoutbc-a")
         self.assertEqual(apply_mapping("runoutef-g", rules), "runoutef-g")
 
+    def test_template_157_maps_portuguese_features(self):
+        rules = get_mapping_rules_for_selection("2508549", ["Adcole 911"])
+
+        expected = {
+            "angleerrortocam11a6-lobe1": "erroanguloparareferenciaa6-lobe1",
+            "angleerrortouz-lobe6": "anguloreferuz-lobe6",
+            "bcradiuserror-lobe1": "raiodocirculobase-lobe1",
+            "bcrunout-lobe6": "desviodocirculobase-lobe6",
+            "cylindricity-a": "cylindricity-a",
+            "measdiamcenter-a": "measdiamcenter-a",
+            "measdiaminf-g": "measdiaminf-g",
+            "measdiamsup-f": "measdiamsup-f",
+            "parallelism-a": "parallelism-a",
+            "parallelism-lobe6": "paralelismo-lobe6",
+            "runoutadj-a": "runoutadj-a",
+            "runoutb-c-a": "runoutb-c-a",
+            "runoute-f-g": "runoute-f-g",
+            "runoutext-b": "runoutext-b",
+            "runoutgage-g": "runoutgage-g",
+            "diameterdm72": "diametrodm72",
+            "roundnessd72": "circularidadedm72",
+        }
+        for source, target in expected.items():
+            self.assertEqual(apply_mapping(source, rules), target)
+
     def test_get_part_codes_for_machine_returns_catalog(self):
         codes = get_part_codes_for_machine("Adcole 911")
         self.assertTrue(codes)
         self.assertIn("150991", codes)
         self.assertIn("2960401", codes)
         self.assertIn("3148774", codes)
+
+    def test_part_template_registry_matches_routine_244_table(self):
+        expected_templates = {
+            "150991": "67",
+            "2972988": "64",
+            "1865230": "68",
+            "2181766": "63",
+            "2878172": "004",
+            "2508549": "157",
+            "2903706": "156",
+            "3071014": "1400",
+            "3070996": "500",
+            "3106033": "370",
+            "3069232": "5",
+            "3148774": "158",
+        }
+        for part_code, template_id in expected_templates.items():
+            self.assertEqual(PART_TEMPLATE_IDS[part_code], template_id)
+            self.assertEqual(get_template_id_for_part(part_code), template_id)
 
     def test_get_mapping_rules_for_selection_returns_valid_rules(self):
         rules = get_mapping_rules_for_selection("EC-001", ["Adcole 911"])

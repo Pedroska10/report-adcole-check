@@ -126,6 +126,48 @@ class Template500ParserTests(unittest.TestCase):
         self.assertEqual(data["runoutgage-lobe2"].measured_value, 0.002)
         self.assertEqual(data["runoutgage-lobe5"].measured_value, 0.005)
 
+    def test_portuguese_mancal_sections_use_one_canonical_name(self):
+        data = _parse_secondary_pdf_portuguese([
+            "Diametro (Inferior)",
+            "Mancal A 35,967 -,008 ,008 35,966 -,001",
+            "Cylindricidade",
+            "Mancal B ,000 ,000 ,020 ,004 ,004",
+            "Paralelismo Eixo",
+            "Mancal C ,000 ,000 ,015 ,000 ,000",
+        ])
+
+        self.assertIn("measdiaminf-a", data)
+        self.assertIn("cylindricity-b", data)
+        self.assertIn("parallelism-c", data)
+        self.assertNotIn("diametroinferior-a", data)
+        self.assertNotIn("cilindricidade-b", data)
+        self.assertNotIn("paralelismoeixo-c", data)
+
+    def test_lobe_angle_annotation_is_not_parsed_as_measurement(self):
+        data = _parse_secondary_pdf_template_500([
+            "Erro de perfil do raio base",
+            "A1 (@ 61,2) ,000 -,025 ,025 ,003 ,003",
+        ])
+
+        row = data["errodeperfildoraiobase-lobe1"]
+        self.assertEqual(row.nominal_value, 0.0)
+        self.assertEqual(row.measured_value, 0.003)
+        self.assertEqual(row.lower_limit, -0.025)
+        self.assertEqual(row.upper_limit, 0.025)
+
+    def test_portuguese_runout_mapping_keeps_report_name_for_display(self):
+        data = _parse_secondary_pdf_portuguese([
+            "Desvio em Relação aos Mancais adjacentes.",
+            "Mancal A ,000 ,000 ,120 ,019 ,019",
+        ])
+
+        row = data["runoutadj-a"]
+        self.assertEqual(
+            row.characteristic_name,
+            "Desvio em Relação aos Mancais adjacentes. - Mancal A",
+        )
+        self.assertNotIn("Runout", row.characteristic_name)
+
 
 if __name__ == "__main__":
     unittest.main()
